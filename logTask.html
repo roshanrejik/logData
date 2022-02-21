@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>
+
+    </title>
+</head>
+
+<body>
+    <div id="root"></div>
+    <script src="../js/react.development.js"></script>
+    <script src="../js/react-dom.development.js"></script>
+    <script src="../js/babel.js"></script>
+    <script type="text/babel">
+        const rootHandle = document.getElementById('root')
+        const { useState, useEffect } = React
+        function App(props) {
+            const [input, setInput] = useState(localStorage.getItem('inputData') ? (localStorage.getItem('inputData')) : "")
+            const [oldData, setOldData] = useState(localStorage.getItem('inputData'))
+            const [logObj, setLogObj] = useState(localStorage.getItem('logObj') ? JSON.parse(localStorage.getItem('logObj')) : [])
+            const handleInput = (e) => {
+                setInput(e.target.value)
+                localStorage.setItem('inputData', e.target.value)
+            }
+            useEffect(() => {
+                setInterval(() => {
+                    setOldData(localStorage.getItem('inputData'))
+                }, 3000)
+            }, [])
+            useEffect(() => {
+                const today = new Date();
+                const datetime = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate() + '   ' +
+                    +  today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+                //{datetime:oldData}
+                const temp = {}
+                temp[datetime] = oldData
+                setLogObj(logObj.concat(temp));
+            }, [oldData])
+            useEffect(() => {
+                console.log(logObj);
+                localStorage.setItem("logObj", JSON.stringify(logObj));
+            }, [logObj])
+            const handleClick = () => {
+                let i = 0;
+                const tm = setInterval(function () {
+                    setInput((Object.values(logObj[i++]))[0]);
+                    if (i === logObj.length) clearInterval(tm);
+                }, 2000);
+
+            }
+            return (
+                <div>
+                    <form>
+                        {localStorage.getItem('inputData') == input ? <textarea value={input} onChange={handleInput} cols="30" rows="10"></textarea> : <textarea value={input} disabled onChange={handleInput} cols="30" rows="10"></textarea>}
+                    </form>
+                    {
+                        <ul>
+                            <h3>Log</h3>
+                            {
+                                logObj.map((ele, i) => {
+                                    return (
+                                        //alert(Object.values(ele))
+                                        <li key={i} onClick={() => { setInput((Object.values(ele))) }}>{Object.keys(ele)[0]}</li>
+                                    )
+                                })
+                            }
+                        </ul>
+                    }
+                    <button onClick={handleClick}>Play</button>
+                </div>
+            )
+        }
+        ReactDOM.render(<App />, rootHandle)
+    </script>
+
+</body>
+
+</html>
